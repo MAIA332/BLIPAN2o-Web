@@ -6,6 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  allowedDevOrigins: ['blipancode.sslip.io']
 }
 
 export default nextConfig

@@ -44,7 +44,7 @@ export function Header({
       <div className="flex items-center gap-4">
         <TenantSelector
           tenants={tenants}
-          currentTenant={currentTenant}
+          currentTenant={currentTenant} // Se for null, o componente deve renderizar um "Selecione..."
           onTenantChange={onTenantChange}
         />
         <span className="text-muted-foreground">/</span>
@@ -106,7 +106,7 @@ export function Header({
             <DropdownMenuItem>Configurações</DropdownMenuItem>
             <DropdownMenuItem>Ajuda</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-destructive cursor-pointer"
               onClick={logout}
             >

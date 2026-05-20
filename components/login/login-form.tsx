@@ -26,6 +26,8 @@ export function LoginForm() {
     if (!success) {
       setError('E-mail ou senha inválidos')
     }
+
+    
     
     setIsLoading(false)
   }
@@ -116,21 +118,6 @@ export function LoginForm() {
               )}
             </Button>
           </form>
-
-          {/* Credenciais de teste */}
-          <div className="mt-6 p-4 bg-muted rounded-md">
-            <p className="text-xs text-muted-foreground text-center mb-2">
-              Credenciais de teste:
-            </p>
-            <div className="text-xs text-center space-y-1">
-              <p className="text-foreground font-mono">
-                E-mail: admin@aspinbots.com
-              </p>
-              <p className="text-foreground font-mono">
-                Senha: 123456
-              </p>
-            </div>
-          </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">

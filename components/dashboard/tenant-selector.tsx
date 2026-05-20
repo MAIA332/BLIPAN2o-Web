@@ -12,7 +12,7 @@ import type { Tenant } from '@/lib/mock-data'
 
 interface TenantSelectorProps {
   tenants: Tenant[]
-  currentTenant: Tenant
+  currentTenant: Tenant | null // Permite que seja null
   onTenantChange: (tenant: Tenant) => void
 }
 
@@ -29,7 +29,10 @@ export function TenantSelector({
           className="flex items-center gap-2 bg-secondary border-border hover:bg-muted"
         >
           <Building2 className="h-4 w-4 text-primary" />
-          <span className="text-foreground">{currentTenant.name}</span>
+          {/* Adicionado fallback de texto se for null */}
+          <span className="text-foreground">
+            {currentTenant ? currentTenant.name : "Selecione uma empresa"}
+          </span>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
@@ -39,7 +42,8 @@ export function TenantSelector({
             key={tenant.id}
             onClick={() => onTenantChange(tenant)}
             className={
-              tenant.id === currentTenant.id
+              // Usando ?. para comparar com segurança (evita erro se currentTenant for null)
+              tenant.id === currentTenant?.id
                 ? 'bg-primary/10 text-primary'
                 : ''
             }

@@ -1,23 +1,12 @@
 'use client'
 
-import { AuthProvider, useAuth } from '@/lib/auth'
+import { useAuth } from '@/lib/auth'
 import { LoginForm } from '@/components/login/login-form'
 import { Dashboard } from '@/components/dashboard/dashboard'
 
-function AppContent() {
+export default function Home() {
   const { isAuthenticated } = useAuth()
 
-  if (!isAuthenticated) {
-    return <LoginForm />
-  }
-
-  return <Dashboard />
-}
-
-export default function Home() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  )
+  // O AuthProvider já injetou o estado, o useAuth pegará o valor atualizado
+  return isAuthenticated ? <Dashboard /> : <LoginForm />
 }

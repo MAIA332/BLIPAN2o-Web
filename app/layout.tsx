@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Instrument_Sans, JetBrains_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import { Providers } from '@/components/providers';
 
 const instrumentSans = Instrument_Sans({ 
   subsets: ["latin"],
@@ -44,8 +44,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="bg-background">
       <body className={`${instrumentSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )
