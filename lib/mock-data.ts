@@ -65,7 +65,7 @@ export const chartPages: ChartPage[] = [
     charts: [
       {
         id: 'chart-1',
-        title: 'Soma de count por action',
+        title: 'Análise de registro de trackings',
         type: 'bar',
         xField: 'action',
         yField: 'count',
@@ -78,7 +78,7 @@ export const chartPages: ChartPage[] = [
       },
       {
         id: 'chart-2',
-        title: 'Ocorrências por state_name',
+        title: 'Ocorrências por bloco',
         type: 'bar',
         xField: 'state_name',
         yField: 'occurrences_count',

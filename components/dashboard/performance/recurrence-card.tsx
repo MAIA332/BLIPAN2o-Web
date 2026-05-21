@@ -83,9 +83,10 @@ export function RecurrenceCard({ data }: RecurrenceCardProps) {
             Saiba quem são os contatos que mais vezes interagiram com seu chatbot no período selecionado
           </p>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
+          {/* Ajuste realizado aqui: max-h e overflow-y-auto */}
+          <div className="overflow-x-auto overflow-y-auto max-h-[300px] border rounded-md">
+            <table className="w-full relative">
+              <thead className="sticky top-0 bg-secondary z-10">
                 <tr className="border-b border-border">
                   <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Nome</th>
                   <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground">Recorrência</th>

@@ -33,13 +33,13 @@ interface SidebarProps {
 
 const menuItems = [
   { id: 'overview', icon: Home, label: 'Visão Geral' },
-  { id: 'bar-charts', icon: BarChart3, label: 'Gráficos de Barras' },
+  /* { id: 'bar-charts', icon: BarChart3, label: 'Gráficos de Barras' },
   { id: 'pie-charts', icon: PieChart, label: 'Gráficos de Pizza' },
-  { id: 'line-charts', icon: LineChart, label: 'Gráficos de Linha' },
+  { id: 'line-charts', icon: LineChart, label: 'Gráficos de Linha' }, */
 ]
 
 const dataItems = [
-  { id: 'data-sources', icon: Database, label: 'Fontes de Dados' },
+  /* { id: 'data-sources', icon: Database, label: 'Fontes de Dados' }, */
   { id: 'reports', icon: FileText, label: 'Relatórios' },
   { id: 'users', icon: Users, label: 'Usuários' },
 ]
