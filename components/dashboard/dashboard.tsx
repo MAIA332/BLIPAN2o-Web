@@ -377,6 +377,7 @@ export function Dashboard() {
                         activeFilters
                       }
                       rawData={rawData}
+                      branchId={currentBranch.id}
                     />
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

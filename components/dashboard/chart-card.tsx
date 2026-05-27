@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
 import {
   BarChart,
   Bar,
@@ -11,7 +10,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-
 import { cn } from '@/lib/utils'
 
 interface ChartCardProps {
@@ -32,7 +30,6 @@ export function ChartCard({
       onClick={onClick}
       className={cn(
         'bg-card border-border transition-all cursor-pointer hover:border-blue-400',
-
         isSelected &&
           'border-blue-500 shadow-[0_0_0_1px_rgb(59_130_246)]'
       )}
@@ -63,7 +60,23 @@ export function ChartCard({
 
                 <YAxis fontSize={11} />
 
-                <Tooltip />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255,255,255,0.1)' }} // Deixa o fundo da barra em hover mais sutil
+                  contentStyle={{ 
+                    backgroundColor: '#18181b', // Fundo escuro (zinc-900)
+                    borderColor: '#27272a',     // Borda sutil (zinc-800)
+                    borderRadius: '6px',
+                    color: '#e4e4e7'            // Cor do texto geral
+                  }}
+                  labelStyle={{ 
+                    color: '#f4f4f5',           // Cor do título/nome da barra mais destacada
+                    fontWeight: 'bold',
+                    marginBottom: '4px'
+                  }}
+                  itemStyle={{ 
+                    color: '#0ea5e9'            // Mantém o azul para o valor numérico
+                  }}
+                />
 
                 <Bar
                   dataKey="value"

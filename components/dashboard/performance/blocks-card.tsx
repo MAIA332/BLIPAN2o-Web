@@ -20,9 +20,10 @@ interface BlocksCardProps {
   description: string
   linkText: string
   blocks: BlockEvent[]
+  onBlockClick?: (blockName: string) => void // Nova prop
 }
 
-export function BlocksCard({ title, description, linkText, blocks }: BlocksCardProps) {
+export function BlocksCard({ title, description, linkText, blocks, onBlockClick }: BlocksCardProps) {
   return (
     <Card className="bg-card border-border h-full">
       <CardHeader className="pb-2">
@@ -45,9 +46,9 @@ export function BlocksCard({ title, description, linkText, blocks }: BlocksCardP
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
           {description}{' '}
-          <a href="#" className="text-primary hover:underline">
+          <span className="text-primary hover:underline cursor-pointer">
             {linkText}
-          </a>
+          </span>
         </p>
 
         <div className="overflow-x-auto">
@@ -67,7 +68,11 @@ export function BlocksCard({ title, description, linkText, blocks }: BlocksCardP
                 </tr>
               ) : (
                 blocks.map((block) => (
-                  <tr key={block.rank} className="border-b border-border/50 hover:bg-secondary/30">
+                  <tr 
+                    key={block.rank} 
+                    className="border-b border-border/50 hover:bg-secondary/30 cursor-pointer transition-colors"
+                    onClick={() => onBlockClick?.(block.blockName)} // Clique aqui
+                  >
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-3">
                         <span className="flex items-center justify-center h-6 w-6 rounded-full bg-chart-1/20 text-chart-1 text-xs font-medium">
