@@ -179,10 +179,10 @@ export function PerformancePage({ activeFilters = {}, rawData, branchId }: Perfo
           description="Esses são os blocos dos subbots que mais tiveram contatos direcionados para atendimento humano."
           linkText="Clique em uma linha para ver os inputs relacionados."
           blocks={filteredTransferBlocks}
-          onBlockClick={(name) => {
+          /* onBlockClick={(name) => {
             console.log("DEBUG: Clique no bloco detectado:", name);
             setSelectedBlock(name);
-          }}
+          }} */
         />
       </div>
       <BlockDetailsModal

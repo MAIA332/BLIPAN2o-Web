@@ -160,37 +160,8 @@ export const chartPages: ChartPage[] = [
   },
   {
     id: 'page-4',
-    name: 'Análise Regional',
-    charts: [
-      {
-        id: 'chart-7',
-        title: 'Vendas por Região',
-        type: 'bar',
-        xField: 'região',
-        yField: 'vendas',
-        data: [
-          { name: 'Norte', value: 4500 },
-          { name: 'Nordeste', value: 6200 },
-          { name: 'Centro-Oeste', value: 3800 },
-          { name: 'Sudeste', value: 9500 },
-          { name: 'Sul', value: 5400 },
-        ],
-      },
-      {
-        id: 'chart-8',
-        title: 'Crescimento Regional',
-        type: 'area',
-        xField: 'região',
-        yField: 'crescimento',
-        data: [
-          { name: 'Norte', value: 12 },
-          { name: 'Nordeste', value: 18 },
-          { name: 'Centro-Oeste', value: 8 },
-          { name: 'Sudeste', value: 15 },
-          { name: 'Sul', value: 10 },
-        ],
-      },
-    ],
+    name: 'Mensagens Ativas',
+    charts: [], // Limpo: a renderização visual agora é responsabilidade do ActiveMessagesPage
   },
 ]
 

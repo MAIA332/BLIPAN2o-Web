@@ -87,7 +87,7 @@ export function ChartCard({
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-              Sem dados disponíveis
+              Sem dados disponíveis ainda...
             </div>
           )}
         </div>
