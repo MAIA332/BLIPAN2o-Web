@@ -26,15 +26,8 @@ import { cn } from '@/lib/utils'
 
 interface FilterPanelProps {
   filters: any[]
-  activeFilters: Record<
-    string,
-    string[]
-  >
-
-  onFilterChange: (
-    field: string,
-    values: string[]
-  ) => void
+  activeFilters: Record<string, string[]>
+  onFilterChange: (field: string, values: string[]) => void
 }
 
 export function FilterPanel({
@@ -42,11 +35,8 @@ export function FilterPanel({
   activeFilters,
   onFilterChange,
 }: FilterPanelProps) {
-  const [searchTerm, setSearchTerm] =
-    useState('')
-
-  const [openSections, setOpenSections] =
-    useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [openSections, setOpenSections] = useState<string[]>([])
 
   /*
    |--------------------------------------------------------------------------
@@ -55,9 +45,7 @@ export function FilterPanel({
    */
 
   useEffect(() => {
-    setOpenSections(
-      filters.map((f) => f.field)
-    )
+    setOpenSections(filters.map((f) => f.field))
   }, [filters])
 
   /*
@@ -66,9 +54,7 @@ export function FilterPanel({
    |--------------------------------------------------------------------------
    */
 
-  const toggleSection = (
-    field: string
-  ) => {
+  const toggleSection = (field: string) => {
     setOpenSections((prev) =>
       prev.includes(field)
         ? prev.filter((f) => f !== field)
@@ -82,19 +68,12 @@ export function FilterPanel({
    |--------------------------------------------------------------------------
    */
 
-  const toggleFilter = (
-    field: string,
-    option: string
-  ) => {
-    const current =
-      activeFilters[field] || []
+  const toggleFilter = (field: string, option: string) => {
+    const current = activeFilters[field] || []
 
-    const newValues =
-      current.includes(option)
-        ? current.filter(
-            (v) => v !== option
-          )
-        : [...current, option]
+    const newValues = current.includes(option)
+      ? current.filter((v) => v !== option)
+      : [...current, option]
 
     onFilterChange(field, newValues)
   }
@@ -105,9 +84,7 @@ export function FilterPanel({
    |--------------------------------------------------------------------------
    */
 
-  const clearFilter = (
-    field: string
-  ) => {
+  const clearFilter = (field: string) => {
     onFilterChange(field, [])
   }
 
@@ -117,29 +94,20 @@ export function FilterPanel({
    |--------------------------------------------------------------------------
    */
 
-  const selectAll = (
-    field: string,
-    options: string[]
-  ) => {
+  const selectAll = (field: string, options: string[]) => {
     onFilterChange(field, options)
   }
 
-  const totalActiveFilters =
-    Object.values(activeFilters).flat()
-      .length
+  const totalActiveFilters = Object.values(activeFilters).flat().length
 
   return (
     <div className="w-72 bg-card border-l border-border flex flex-col min-h-0 flex-shrink-0">
       {/* HEADER */}
-
       <div className="p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-primary" />
-
-            <span className="font-medium text-foreground">
-              Filtros
-            </span>
+            <span className="font-medium text-foreground">Filtros</span>
           </div>
 
           {totalActiveFilters > 0 && (
@@ -154,22 +122,16 @@ export function FilterPanel({
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-
           <Input
             placeholder="Pesquisar..."
             value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(
-                e.target.value
-              )
-            }
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 bg-input border-border"
           />
         </div>
       </div>
 
       {/* FILTROS */}
-
       <ScrollArea className="flex-1 overflow-hidden">
         <div className="p-4 space-y-3">
           {filters.length === 0 && (
@@ -179,37 +141,25 @@ export function FilterPanel({
           )}
 
           {filters.map((filter) => {
-            const filteredOptions =
-              filter.options.filter(
-                (opt: string) =>
-                  opt
-                    .toLowerCase()
-                    .includes(
-                      searchTerm.toLowerCase()
-                    )
-              )
+            // Trava extra de segurança: Ignora se vier a action
+            if (filter.field === 'action') return null
 
-            const activeCount =
-              (
-                activeFilters[
-                  filter.field
-                ] || []
-              ).length
-
-            const isOpen =
-              openSections.includes(
-                filter.field
+            // Filtra as opções baseada na pesquisa, e depois LIMITA em 100
+            // para não congelar o DOM criando milhares de HTML Checkboxes
+            const filteredOptions = filter.options
+              .filter((opt: string) =>
+                opt.toLowerCase().includes(searchTerm.toLowerCase())
               )
+              .slice(0, 100) 
+
+            const activeCount = (activeFilters[filter.field] || []).length
+            const isOpen = openSections.includes(filter.field)
 
             return (
               <Collapsible
                 key={filter.field}
                 open={isOpen}
-                onOpenChange={() =>
-                  toggleSection(
-                    filter.field
-                  )
-                }
+                onOpenChange={() => toggleSection(filter.field)}
               >
                 <div className="rounded-lg bg-muted/50 overflow-hidden border border-border">
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted transition-colors">
@@ -218,15 +168,12 @@ export function FilterPanel({
                         {filter.label}
                       </span>
 
-                      {activeCount >
-                        0 && (
+                      {activeCount > 0 && (
                         <Badge
                           variant="secondary"
                           className="bg-primary/20 text-primary text-xs"
                         >
-                          {
-                            activeCount
-                          }
+                          {activeCount}
                         </Badge>
                       )}
                     </div>
@@ -234,8 +181,7 @@ export function FilterPanel({
                     <ChevronDown
                       className={cn(
                         'h-4 w-4 text-muted-foreground transition-transform',
-                        isOpen &&
-                          'rotate-180'
+                        isOpen && 'rotate-180'
                       )}
                     />
                   </CollapsibleTrigger>
@@ -246,28 +192,18 @@ export function FilterPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            selectAll(
-                              filter.field,
-                              filter.options
-                            )
-                          }
+                          onClick={() => selectAll(filter.field, filter.options)}
                           className="h-7 text-xs"
                         >
                           <Check className="h-3 w-3 mr-1" />
                           Tudo
                         </Button>
 
-                        {activeCount >
-                          0 && (
+                        {activeCount > 0 && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              clearFilter(
-                                filter.field
-                              )
-                            }
+                            onClick={() => clearFilter(filter.field)}
                             className="h-7 text-xs text-destructive"
                           >
                             <X className="h-3 w-3 mr-1" />
@@ -276,37 +212,27 @@ export function FilterPanel({
                         )}
                       </div>
 
-                      {filteredOptions.map(
-                        (
-                          option: string
-                        ) => (
-                          <label
-                            key={option}
-                            className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted cursor-pointer group"
-                          >
-                            <Checkbox
-                              checked={(
-                                activeFilters[
-                                  filter
-                                    .field
-                                ] || []
-                              ).includes(
-                                option
-                              )}
-                              onCheckedChange={() =>
-                                toggleFilter(
-                                  filter.field,
-                                  option
-                                )
-                              }
-                              className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
+                      {filteredOptions.map((option: string) => (
+                        <label
+                          key={option}
+                          className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted cursor-pointer group"
+                        >
+                          <Checkbox
+                            checked={(activeFilters[filter.field] || []).includes(option)}
+                            onCheckedChange={() => toggleFilter(filter.field, option)}
+                            className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
 
-                            <span className="text-sm text-foreground group-hover:text-foreground/90 flex-1 truncate">
-                              {option}
-                            </span>
-                          </label>
-                        )
+                          <span className="text-sm text-foreground group-hover:text-foreground/90 flex-1 truncate" title={option}>
+                            {option}
+                          </span>
+                        </label>
+                      ))}
+
+                      {filter.options.length > 100 && filteredOptions.length === 100 && (
+                        <div className="text-[10px] text-muted-foreground text-center mt-2 pt-1 border-t border-border/50 italic">
+                          Muitos resultados. Use a pesquisa.
+                        </div>
                       )}
                     </div>
                   </CollapsibleContent>

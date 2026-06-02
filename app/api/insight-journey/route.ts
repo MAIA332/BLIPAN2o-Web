@@ -15,35 +15,36 @@ export async function POST(request: Request) {
       })
     })
 
-    if (!authRes.ok) {
-      throw new Error('Falha na autenticação da IA Mindy')
-    }
-
+    if (!authRes.ok) throw new Error('Falha na autenticação da IA Mindy')
     const authData = await authRes.json()
     const token = authData.token
 
-    // Pegar o IP do request
     const forwardedFor = request.headers.get('x-forwarded-for')
     const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1'
 
-    // 2. Montar o Prompt focando nos seus dois objetivos
-    const prompt = `Você é um analista de dados e UX especialista em fluxos de chatbots.
-    Analise os seguintes dados extraídos de uma jornada de usuários:
-    
-    1. Passos da Jornada (Origem -> Destino | Volume | Abandonos): ${JSON.stringify(sortedSteps)}
-    2. Top Blocos com Abandono: ${JSON.stringify(dropRanking)}
-    
-    Por favor, forneça uma análise estruturada em duas partes:
-    
-    PARTE 1: Fluidez do Fluxo
-    - Avalie a saúde da jornada.
-    - Identifique gargalos, anomalias ou possíveis loops de repetição de transbordo/pesquisa (atente-se a padrões onde o usuário fica preso indo e voltando entre os mesmos blocos).
-    - Sugira pontos de melhoria no fluxo.
-    
-    PARTE 2: Análise de Abandonos (Drop-offs)
-    - Olhando para os blocos com maior abandono, elabore hipóteses lógicas do porquê os usuários estão saindo do fluxo nesses momentos específicos.
-    
-    Retorne a resposta em linguagem simples, direta e formatada para fácil leitura (pode usar quebras de linha, mas evite markdown complexo).`
+    // ==========================================
+    // PROMPT OTIMIZADO (ESTRUTURA RAG / FALHAS)
+    // ==========================================
+    const prompt = `
+[PAPEL]
+Você é um Arquiteto de Soluções Conversacionais focado em auditoria de fluxos, transbordos e retenção.
+
+[CONTEXTO DE DADOS]
+Abaixo estão os logs exatos extraídos do roteador do bot:
+- Matriz de Transições (Origem -> Destino | Volume | Abandonos): ${JSON.stringify(sortedSteps)}
+- Top Blocos com Abandono Silencioso: ${JSON.stringify(dropRanking)}
+
+[TAREFA E FOCO (DIAGNÓSTICO DE FALHAS)]
+Avalie EXCLUSIVAMENTE os dados fornecidos para identificar onde o bot falha em reter ou guiar o usuário. Ignore caminhos saudáveis e concentre sua análise em:
+
+1. Loops de Frustração: Identifique padrões onde o usuário fica preso indo e voltando entre os mesmos blocos (ex: Menu -> Erro -> Menu).
+2. Quedas em Exceções/Fallback: Quais passos estão engatilhando as mensagens de erro ou de "não entendi" com maior frequência?
+3. Abandono Abrupto (Drop-offs): Analisando o ranking de abandonos, elabore hipóteses causais lógicas: por que o usuário desiste nesses blocos específicos? É um formulário longo? É uma quebra de expectativa?
+4. Pressão de Transbordo (Handoff): Verifique se há picos de redirecionamento direto para atendimento humano (desk).
+
+[FORMATO DE SAÍDA]
+Apresente um relatório de "Análise de Gargalos". Seja incisivo, analítico e proponha melhorias arquiteturais simples para estancar a perda de usuários. Use listas. Evite markdown excessivo.
+`;
 
     // 3. Chamada para o Chat da Mindy
     const chatRes = await fetch(`${process.env.MINDYAPIURL}/chat`, {
@@ -52,16 +53,10 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        ip: ip,
-        slug: process.env.MINDYSLUG,
-        message: prompt
-      })
+      body: JSON.stringify({ ip, slug: process.env.MINDYSLUG, message: prompt })
     })
 
-    if (!chatRes.ok) {
-      throw new Error('Falha ao gerar o insight da jornada')
-    }
+    if (!chatRes.ok) throw new Error('Falha ao gerar o insight da jornada')
 
     const chatDataResponse = await chatRes.json()
     

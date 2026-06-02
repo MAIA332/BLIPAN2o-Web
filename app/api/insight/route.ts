@@ -15,44 +15,51 @@ export async function POST(request: Request) {
       })
     })
 
-    if (!authRes.ok) {
-      throw new Error('Falha na autenticação da IA Mindy')
-    }
-
+    if (!authRes.ok) throw new Error('Falha na autenticação da IA Mindy')
     const authData = await authRes.json()
     const token = authData.token
 
-    // Pegar o IP do request (padrão em Next.js)
     const forwardedFor = request.headers.get('x-forwarded-for')
     const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1'
 
-    // Montar o Prompt com os dados reais
-    const prompt = `Analise os seguintes inputs de usuários recebidos no bloco "${blockName}" de um fluxo de chatbot. 
-    Dados dos inputs (Ação : Quantidade): ${JSON.stringify(chartData)}. 
-    Aja como um analista de dados. Gere um resumo em linguagem simples mas detalhada explicando o que esses dados significam, quais os principais comportamentos, e como os usuários estão interagindo com este bloco. Retorne apenas o texto da explicação de forma direta, sem tags markdown pesadas.`
+    // ==========================================
+    // PROMPT OTIMIZADO (ESTRUTURA RAG / FALHAS)
+    // ==========================================
+    const prompt = `
+[PAPEL]
+Você é um Analista de Dados e Especialista em Treinamento de IA (NLP QA) focado em melhorar chatbots.
+
+[CONTEXTO DE DADOS]
+- Bloco analisado: "${blockName}"
+- Inputs recebidos (Mensagem do Usuário : Frequência): ${JSON.stringify(chartData)}
+
+[TAREFA]
+Utilizando EXCLUSIVAMENTE o [CONTEXTO DE DADOS] fornecido, audite o comportamento dos usuários neste bloco específico. 
+
+[FOCO DE ATENÇÃO (CRÍTICO)]
+Seu foco principal não é o caminho feliz, mas sim as FALHAS. Analise os dados para descobrir:
+1. Intenções Inesperadas: O que os usuários estão digitando que provavelmente o bot não foi treinado para entender neste momento?
+2. Falsos Positivos/Erros de UX: Existem inputs que indicam frustração, sarcasmo, ou tentativas de pedir "atendente humano"?
+3. Padrões de Ruído: Existem erros de digitação comuns, gírias ou ambiguidades que podem estar quebrando o fluxo?
+
+[FORMATO DE SAÍDA]
+Gere um diagnóstico direto e acionável em linguagem simples. Use marcadores (bullet points) para listar os principais pontos de atrito identificados. Não use formatação markdown complexa (apenas negrito e listas simples).
+`;
 
     // 2. Chamada para o Chat da Mindy
     const chatRes = await fetch(`${process.env.MINDYAPIURL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // Presumindo envio de token via Bearer
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        ip: ip,
-        slug: process.env.MINDYSLUG,
-        message: prompt
-      })
+      body: JSON.stringify({ ip, slug: process.env.MINDYSLUG, message: prompt })
     })
 
-    if (!chatRes.ok) {
-      throw new Error('Falha ao gerar o insight')
-    }
+    if (!chatRes.ok) throw new Error('Falha ao gerar o insight')
 
     const chatDataResponse = await chatRes.json()
     
-    // Como a Mindy pode retornar um JSON em formato de string (como mostrado no seu exemplo),
-    // tentamos fazer o parse para extrair a explicação caso o seu Slug tenha uma formatação travada.
     let finalInsight = chatDataResponse
     try {
       if (typeof chatDataResponse === 'string') {
@@ -60,7 +67,6 @@ export async function POST(request: Request) {
         finalInsight = parsed.explicacao || parsed.veredicto || chatDataResponse
       }
     } catch (e) {
-      // Se não for JSON, usamos a string bruta retornada
       finalInsight = chatDataResponse
     }
 

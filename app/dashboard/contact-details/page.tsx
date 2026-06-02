@@ -19,6 +19,9 @@ import {
   Image as ImageIcon
 } from 'lucide-react'
 
+// Importe o componente que acabamos de criar (ajuste o caminho conforme sua estrutura)
+import { HistoryInsightButton } from '@/components/dashboard/HistoryInsightButton'
+
 function ContactDetailsContent() {
 
   const searchParams = useSearchParams()
@@ -635,21 +638,29 @@ function ContactDetailsContent() {
 
           <CardHeader className="border-b border-border bg-background/95 backdrop-blur z-10">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">
-                Histórico de Mensagens
-              </CardTitle>
-              <div className="px-3 py-1 bg-primary/10 text-primary font-semibold rounded-full text-xs">
-                {data.threads?.length || 0} mensagens
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-lg">
+                  Histórico de Mensagens
+                </CardTitle>
+                <div className="px-3 py-1 bg-primary/10 text-primary font-semibold rounded-full text-xs">
+                  {data.threads?.length || 0} mensagens
+                </div>
               </div>
+              
+              {/* COMPONENTE DA IA INSERIDO AQUI */}
+              <HistoryInsightButton 
+                contactId={identity || 'Desconhecido'} 
+                messages={data.threads || []} 
+              />
+              
             </div>
           </CardHeader>
 
-          {/* AQUI ESTAVA O PROBLEMA: Alterado bg-slate-50 e bg-slate-900/20 para bg-muted/30 */}
           <CardContent className="flex-1 overflow-y-auto min-h-0 p-6 bg-muted/30">
 
             <div className="flex flex-col gap-5">
 
-              {data.threads.map((msg: any, i: number) => (
+              {data.threads?.map((msg: any, i: number) => (
 
                 <div
                   key={msg.id || i}
@@ -661,8 +672,8 @@ function ContactDetailsContent() {
 
                   <div
                     className={`rounded-2xl p-4 max-w-[85%] border shadow-sm ${msg.direction === 'received'
-                        ? 'bg-indigo-50/70 border-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/20' // Suavizado no dark mode
-                        : 'bg-card border-border' // Usando card no lugar de background para destacar sutilmente do fundo
+                        ? 'bg-indigo-50/70 border-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/20' 
+                        : 'bg-card border-border' 
                       }`}
                   >
 

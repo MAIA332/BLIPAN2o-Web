@@ -93,37 +93,8 @@ export const chartPages: ChartPage[] = [
   },
   {
     id: 'page-2',
-    name: 'Análise de Ações',
-    charts: [
-      {
-        id: 'chart-3',
-        title: 'Tendência de Ações',
-        type: 'line',
-        xField: 'mês',
-        yField: 'quantidade',
-        data: [
-          { name: 'Jan', value: 120 },
-          { name: 'Fev', value: 180 },
-          { name: 'Mar', value: 150 },
-          { name: 'Abr', value: 220 },
-          { name: 'Mai', value: 190 },
-          { name: 'Jun', value: 240 },
-        ],
-      },
-      {
-        id: 'chart-4',
-        title: 'Distribuição por Categoria',
-        type: 'area',
-        xField: 'categoria',
-        yField: 'total',
-        data: [
-          { name: 'Categoria A', value: 45 },
-          { name: 'Categoria B', value: 32 },
-          { name: 'Categoria C', value: 28 },
-          { name: 'Categoria D', value: 18 },
-        ],
-      },
-    ],
+    name: 'Análise de atendimento',
+    charts: [], // Limpo: a renderização visual será uma tela nova customizada
   },
   {
     id: 'page-3',
