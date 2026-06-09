@@ -10,11 +10,14 @@ import { PerformancePage } from '@/components/dashboard/performance/performance-
 import { ActiveMessagesPage } from '@/components/dashboard/active-messages-page'
 import { AttendanceDashboardPage } from './attendence/AttendanceDashboardPage'
 import { PageNavigation } from './page-navigation'
+// Importe a página de configurações que criamos (ajuste o caminho conforme sua estrutura)
+import { SettingsPage } from '../SettingsPage'
 
 import { useAuth } from '@/lib/auth'
 import { chartPages } from '@/lib/mock-data'
 import { fetchDashboardData } from '@/lib/dashboard-service'
 import type { DateFilterType } from '@/components/dashboard/header'
+import { AlertCircle, BarChart3, Loader2 } from 'lucide-react'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -28,7 +31,10 @@ export function Dashboard() {
 
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [currentPageId, setCurrentPageId] = useState(chartPages[0].id)
-  const [currentSection, setCurrentSection] = useState('overview')
+  
+  // Estado que controla o menu lateral
+  const [currentSection, setCurrentSection] = useState('overview') 
+  
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({})
   const [selectedChartId, setSelectedChartId] = useState<string | null>(null)
 
@@ -42,7 +48,6 @@ export function Dashboard() {
    */
 
   const getDateRange = (filter: DateFilterType) => {
-    // Se for customizado e as datas estiverem preenchidas, retorna as selecionadas
     if (filter === 'custom' && customDateRange.start && customDateRange.end) {
       return {
         startDate: customDateRange.start,
@@ -64,7 +69,6 @@ export function Dashboard() {
         start.setDate(end.getDate() - 90)
         break
       default:
-        // Fallback de segurança para 30 dias
         start.setDate(end.getDate() - 30)
         break
     }
@@ -102,13 +106,7 @@ export function Dashboard() {
     }
 
     loadData()
-  }, [currentBranch, dateFilter, customDateRange.start, customDateRange.end]) // Adicionado as dependências da data customizada
-
-  /*
-   |-------------------------------------------------------------------------- 
-   | NORMALIZAÇÃO DOS DATASETS
-   |-------------------------------------------------------------------------- 
-   */
+  }, [currentBranch, dateFilter, customDateRange.start, customDateRange.end])
 
   /*
    |-------------------------------------------------------------------------- 
@@ -120,37 +118,29 @@ export function Dashboard() {
     if (!rawData) {
       return {
         trackingRecords: [],
-        occurrenceRecords: [],
       }
     }
 
     const trackingRecords: any[] = []
-    const occurrenceRecords: any[] = []
 
     Object.entries(rawData.trackings?.data || {}).forEach(([category, items]: [string, any]) => {
       items.forEach((item: any) => {
         let action = item.action || 'Unknown'
         let isValidAction = true
 
-        // 1. Tratamento de strings JSON disfarçadas na "action"
         if (typeof action === 'string' && action.trim().startsWith('{')) {
           try {
             const parsed = JSON.parse(action)
-
-            // Se o JSON tiver uma estrutura de mídia (uri, type) ou for muito complexo, ignoramos esse tracking
             if (parsed.uri || parsed.type?.includes('/') || parsed.metadata) {
               isValidAction = false
             } else {
-              // Tenta resgatar um nome útil se for um JSON limpo e suportado
               action = parsed.resource?.team || parsed.name || parsed.type || 'Default'
             }
           } catch {
-            // Se falhar o parse e parecia um JSON quebrado, também descartamos
             isValidAction = false
           }
         }
 
-        // 2. Tratamento de UUIDs perdidos como ação
         if (typeof action === 'string') {
           const isUUID = /^[0-9a-fA-F-]{30,}$/.test(action)
           if (isUUID) {
@@ -158,9 +148,7 @@ export function Dashboard() {
           }
         }
 
-        // 3. Só adiciona ao gráfico se for uma ação válida (nome limpo)
         if (isValidAction && typeof action === 'string' && action !== 'Unknown') {
-          // Mais uma trava de segurança para evitar textos bizarros longos (ex: URLs soltas)
           if (action.length > 50 && (action.includes('http') || action.includes('://'))) {
             isValidAction = false
           }
@@ -176,22 +164,14 @@ export function Dashboard() {
       })
     })
 
-    Object.entries(rawData.occurrences?.data || {}).forEach(([_, item]: any) => {
-      occurrenceRecords.push({
-        state_name: item.state_name || 'Unknown',
-        occurrences_count: Number(item.occurrences_count || 0),
-      })
-    })
-
     return {
       trackingRecords,
-      occurrenceRecords,
     }
   }, [rawData])
 
   /*
    |-------------------------------------------------------------------------- 
-   | DATASET POR CHART
+   | DATASET POR CHART E FILTROS
    |-------------------------------------------------------------------------- 
    */
 
@@ -199,8 +179,6 @@ export function Dashboard() {
     switch (chartId) {
       case 'chart-1':
         return datasets.trackingRecords
-      case 'chart-2':
-        return datasets.occurrenceRecords
       default:
         return []
     }
@@ -213,19 +191,12 @@ export function Dashboard() {
     return getChartDataset(selectedChart.id)
   }, [selectedChart, datasets])
 
-  /*
-   |-------------------------------------------------------------------------- 
-   | FILTROS
-   |-------------------------------------------------------------------------- 
-   */
-
   const activeChartFilters = useMemo(() => {
     if (!selectedChart) return []
 
-    // Forçamos a exclusão do 'action', mesmo que ele venha do xField
-    const fields = [selectedChart.xField, 'category', 'state_name']
+    const fields = [selectedChart.xField, 'category']
       .filter(Boolean)
-      .filter((field) => field !== 'action') // 🛑 TRAVA AQUI: Remove o action definitivamente
+      .filter((field) => field !== 'action')
       .filter((value, index, self) => self.indexOf(value) === index)
 
     return fields
@@ -240,7 +211,7 @@ export function Dashboard() {
 
         return {
           field,
-          label: field === 'state_name' ? 'Estado' : field === 'category' ? 'Categoria' : field,
+          label: field === 'category' ? 'Categoria' : field,
           options,
         }
       })
@@ -258,6 +229,12 @@ export function Dashboard() {
     setActiveFilters({})
   }, [selectedChartId])
 
+  /*
+   |-------------------------------------------------------------------------- 
+   | RENDERIZAÇÃO PRINCIPAL
+   |-------------------------------------------------------------------------- 
+   */
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
@@ -270,56 +247,67 @@ export function Dashboard() {
           tenants={availableBranches}
           currentTenant={currentBranch}
           onTenantChange={setCurrentBranch}
-          pageTitle={currentPage?.name || 'Dashboard'}
+          pageTitle={
+            currentSection === 'settings' ? 'Configurações' : 
+            currentSection === 'reports' ? 'Relatórios' :
+            currentSection === 'users' ? 'Usuários' :
+            currentPage?.name || 'Dashboard'
+          }
           dateFilter={dateFilter}
           onDateFilterChange={setDateFilter}
-          // Injeção do período personalizado
           customDateRange={customDateRange}
           onCustomDateApply={(start, end) => setCustomDateRange({ start, end })}
         />
 
         <div className="flex-1 flex min-h-0 overflow-hidden">
-          {!currentBranch ? (
+          {/* 🔹 ROTAS BASEADAS NA SIDEBAR (currentSection) */}
+          {currentSection === 'settings' ? (
+            <SettingsPage />
+          ) : currentSection === 'reports' ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <h2 className="text-xl">Selecione uma empresa</h2>
+              <h2 className="text-xl">Módulo de Relatórios (Em Breve)</h2>
+            </div>
+          ) : currentSection === 'users' ? (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <h2 className="text-xl">Gestão de Usuários (Em Breve)</h2>
+            </div>
+          ) : !currentBranch ? (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <h2 className="text-xl">Selecione uma empresa para visualizar os dados</h2>
+              </div>
             </div>
           ) : (
+            
+            /* 🔹 RENDERIZAÇÃO PADRÃO DO DASHBOARD (overview) */
             <>
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto p-6">
 
-                  {/* 🔹 RENDERIZAÇÃO CONDICIONAL DAS PÁGINAS */}
                   {currentPageId === 'page-2' ? (
-
                     <AttendanceDashboardPage
                       branchId={currentBranch.id}
                       startDate={getDateRange(dateFilter).startDate}
                       endDate={getDateRange(dateFilter).endDate}
                     />
-
                   ) : currentPageId === 'page-3' ? (
-
                     <PerformancePage
                       activeFilters={activeFilters}
                       rawData={rawData}
                       branchId={currentBranch.id}
                     />
-
                   ) : currentPageId === 'page-4' ? (
-
                     <ActiveMessagesPage
                       branchId={currentBranch.id}
                       startDate={getDateRange(dateFilter).startDate}
                       endDate={getDateRange(dateFilter).endDate}
                     />
-
                   ) : (
-
                     // PÁGINA 1 (VISÃO GERAL / GRÁFICOS PADRÃO)
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6">
                       {currentPage?.charts.map((chart) => {
                         const dataset = getChartDataset(chart.id)
-
                         const isChartLoading = isLoadingData && chart.id === 'chart-1'
 
                         const filteredDataset = selectedChartId === chart.id
@@ -348,14 +336,32 @@ export function Dashboard() {
                           value,
                         }))
 
+                        // FEEDBACK UI: Carregando
                         if (isChartLoading) {
                           return (
-                            <div key={chart.id} className="flex items-center justify-center h-[300px] border rounded-lg">
-                              Carregando gráfico...
+                            <div key={chart.id} className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border rounded-xl bg-card/50 animate-pulse">
+                              <Loader2 className="w-8 h-8 mb-4 animate-spin text-primary" />
+                              <p className="text-muted-foreground font-medium">Sincronizando dados...</p>
                             </div>
                           )
                         }
 
+                        // FEEDBACK UI: Sem Dados
+                        if (chartData.length === 0) {
+                          return (
+                            <div key={chart.id} className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border rounded-xl bg-card/50">
+                              <div className="bg-muted p-4 rounded-full mb-4">
+                                <AlertCircle className="w-8 h-8 text-muted-foreground" />
+                              </div>
+                              <h3 className="text-lg font-semibold text-foreground">Sem dados disponíveis ainda</h3>
+                              <p className="text-sm text-muted-foreground max-w-[300px] text-center mt-2">
+                                Estamos processando os dados solicitados, isso pode levar uns segundos...
+                              </p>
+                            </div>
+                          )
+                        }
+
+                        // RENDERIZAÇÃO: Gráfico OK
                         return (
                           <ChartCard
                             key={chart.id}
@@ -381,7 +387,6 @@ export function Dashboard() {
                 </div>
               </div>
 
-              {/* 🔹 FILTROS */}
               {/* Oculto nas páginas Customizadas */}
               {!['page-2', 'page-3', 'page-4'].includes(currentPageId) && (
                 <FilterPanel

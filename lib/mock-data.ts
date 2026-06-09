@@ -75,7 +75,7 @@ export const chartPages: ChartPage[] = [
           { name: 'Marketing', value: 4 },
           { name: 'Vendas', value: 2 },
         ],
-      },
+      }/* ,
       {
         id: 'chart-2',
         title: 'Ocorrências por bloco',
@@ -88,7 +88,7 @@ export const chartPages: ChartPage[] = [
           { name: '1.0.2 - Policy', value: 2 },
           { name: 'show error message', value: 2 },
         ],
-      },
+      }, */
     ],
   },
   {
