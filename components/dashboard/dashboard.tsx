@@ -10,8 +10,8 @@ import { PerformancePage } from '@/components/dashboard/performance/performance-
 import { ActiveMessagesPage } from '@/components/dashboard/active-messages-page'
 import { AttendanceDashboardPage } from './attendence/AttendanceDashboardPage'
 import { PageNavigation } from './page-navigation'
-// Importe a página de configurações que criamos (ajuste o caminho conforme sua estrutura)
 import { SettingsPage } from '../SettingsPage'
+import { OverviewPage } from './OverviewPage'
 
 import { useAuth } from '@/lib/auth'
 import { chartPages } from '@/lib/mock-data'
@@ -110,9 +110,20 @@ export function Dashboard() {
 
   /*
    |-------------------------------------------------------------------------- 
-   | NORMALIZAÇÃO DOS DATASETS
+   | NORMALIZAÇÃO DOS DATASETS E MÉTRICAS
    |-------------------------------------------------------------------------- 
    */
+
+  // 🔹 Propriedades para a Visão Geral (OverviewPage)
+  const contactsSummaryProps = useMemo(() => {
+    // Altere para puxar do seu rawData conforme a estrutura da sua API
+    return {
+      totalContacts: rawData?.contacts?.total || 1450,
+      totalContactsChange: rawData?.contacts?.change || 12.5,
+      interactionRate: rawData?.contacts?.interactionRate || 85.2,
+      rejectionRate: rawData?.contacts?.rejectionRate || 14.8
+    }
+  }, [rawData])
 
   const datasets = useMemo(() => {
     if (!rawData) {
@@ -184,7 +195,7 @@ export function Dashboard() {
     }
   }
 
-  const selectedChart = currentPage?.charts.find((c) => c.id === selectedChartId) || null
+  const selectedChart = currentPage?.charts?.find((c) => c.id === selectedChartId) || null
 
   const selectedChartDataset = useMemo(() => {
     if (!selectedChart) return []
@@ -304,76 +315,91 @@ export function Dashboard() {
                       endDate={getDateRange(dateFilter).endDate}
                     />
                   ) : (
-                    // PÁGINA 1 (VISÃO GERAL / GRÁFICOS PADRÃO)
-                    <div className="grid grid-cols-1 gap-6">
-                      {currentPage?.charts.map((chart) => {
-                        const dataset = getChartDataset(chart.id)
-                        const isChartLoading = isLoadingData && chart.id === 'chart-1'
+                    // PÁGINA 1 (VISÃO GERAL / GRÁFICOS PADRÃO + OVERVIEW CONTINUAÇÃO)
+                    <div className="flex flex-col gap-10">
+                      
+                      {/* 1. SEÇÃO DE GRÁFICOS PADRÃO */}
+                      <div className="grid grid-cols-1 gap-6">
+                        {currentPage?.charts?.map((chart) => {
+                          const dataset = getChartDataset(chart.id)
+                          const isChartLoading = isLoadingData && chart.id === 'chart-1'
 
-                        const filteredDataset = selectedChartId === chart.id
-                          ? dataset.filter((record: any) => {
-                            return Object.entries(activeFilters).every(([field, values]) => {
-                              if (!values.length) return true
-                              if (!(field in record)) return true
-                              return values.includes(String(record[field]))
+                          const filteredDataset = selectedChartId === chart.id
+                            ? dataset.filter((record: any) => {
+                              return Object.entries(activeFilters).every(([field, values]) => {
+                                if (!values.length) return true
+                                if (!(field in record)) return true
+                                return values.includes(String(record[field]))
+                              })
                             })
-                          })
-                          : dataset
+                            : dataset
 
-                        const grouped = filteredDataset.reduce((acc: any, item: any) => {
-                          const key = item[chart.xField]
-                          const value = Number(item[chart.yField] || 0)
+                          const grouped = filteredDataset.reduce((acc: any, item: any) => {
+                            const key = item[chart.xField]
+                            const value = Number(item[chart.yField] || 0)
 
-                          if (!key) return acc
-                          if (!acc[key]) acc[key] = 0
-                          acc[key] += value
+                            if (!key) return acc
+                            if (!acc[key]) acc[key] = 0
+                            acc[key] += value
 
-                          return acc
-                        }, {})
+                            return acc
+                          }, {})
 
-                        const chartData = Object.entries(grouped).map(([name, value]) => ({
-                          name,
-                          value,
-                        }))
+                          const chartData = Object.entries(grouped).map(([name, value]) => ({
+                            name,
+                            value,
+                          }))
 
-                        // FEEDBACK UI: Carregando
-                        if (isChartLoading) {
-                          return (
-                            <div key={chart.id} className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border rounded-xl bg-card/50 animate-pulse">
-                              <Loader2 className="w-8 h-8 mb-4 animate-spin text-primary" />
-                              <p className="text-muted-foreground font-medium">Sincronizando dados...</p>
-                            </div>
-                          )
-                        }
-
-                        // FEEDBACK UI: Sem Dados
-                        if (chartData.length === 0) {
-                          return (
-                            <div key={chart.id} className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border rounded-xl bg-card/50">
-                              <div className="bg-muted p-4 rounded-full mb-4">
-                                <AlertCircle className="w-8 h-8 text-muted-foreground" />
+                          // FEEDBACK UI: Carregando
+                          if (isChartLoading) {
+                            return (
+                              <div key={chart.id} className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border rounded-xl bg-card/50 animate-pulse">
+                                <Loader2 className="w-8 h-8 mb-4 animate-spin text-primary" />
+                                <p className="text-muted-foreground font-medium">Sincronizando dados...</p>
                               </div>
-                              <h3 className="text-lg font-semibold text-foreground">Sem dados disponíveis ainda</h3>
-                              <p className="text-sm text-muted-foreground max-w-[300px] text-center mt-2">
-                                Estamos processando os dados solicitados, isso pode levar uns segundos...
-                              </p>
-                            </div>
-                          )
-                        }
+                            )
+                          }
 
-                        // RENDERIZAÇÃO: Gráfico OK
-                        return (
-                          <ChartCard
-                            key={chart.id}
-                            chart={{
-                              ...chart,
-                              data: chartData,
-                            }}
-                            isSelected={selectedChartId === chart.id}
-                            onClick={() => setSelectedChartId((prev) => (prev === chart.id ? null : chart.id))}
-                          />
-                        )
-                      })}
+                          // FEEDBACK UI: Sem Dados
+                          if (chartData.length === 0) {
+                            return (
+                              <div key={chart.id} className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border rounded-xl bg-card/50">
+                                <div className="bg-muted p-4 rounded-full mb-4">
+                                  <AlertCircle className="w-8 h-8 text-muted-foreground" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-foreground">Sem dados disponíveis ainda</h3>
+                                <p className="text-sm text-muted-foreground max-w-[300px] text-center mt-2">
+                                  Estamos processando os dados solicitados, isso pode levar uns segundos...
+                                </p>
+                              </div>
+                            )
+                          }
+
+                          // RENDERIZAÇÃO: Gráfico OK
+                          return (
+                            <ChartCard
+                              key={chart.id}
+                              chart={{
+                                ...chart,
+                                data: chartData,
+                              }}
+                              isSelected={selectedChartId === chart.id}
+                              onClick={() => setSelectedChartId((prev) => (prev === chart.id ? null : chart.id))}
+                            />
+                          )
+                        })}
+                      </div>
+
+                      {/* 2. SEÇÃO OVERVIEW COMO CONTINUAÇÃO (ABAIXO DOS GRÁFICOS) */}
+                      <div className="pt-4 border-t border-border/50">
+                        <OverviewPage 
+                          branchId={currentBranch.id}
+                          startDate={getDateRange(dateFilter).startDate}
+                          endDate={getDateRange(dateFilter).endDate}
+                          contactsData={contactsSummaryProps}
+                        />
+                      </div>
+
                     </div>
                   )}
                 </div>
